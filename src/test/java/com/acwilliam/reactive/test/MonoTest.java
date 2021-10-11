@@ -2,8 +2,11 @@ package com.acwilliam.reactive.test;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import org.reactivestreams.Subscription;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+
+
 
 @Slf4j
 /*
@@ -61,5 +64,39 @@ public class MonoTest {
                 .expectError(RuntimeException.class)
                 .verify();
     }
+
+    @Test
+    public void monoSubscriberConsumerComplete(){
+        String nome = "William Coelho";
+        Mono<String> mono = Mono.just(nome)
+                .log()
+                .map(String::toUpperCase);
+
+        mono.subscribe(s -> log.info("Value {} ", s),
+                Throwable::printStackTrace,
+                () -> log.info("Finalizado"));
+        log.info("---------------");
+        StepVerifier.create(mono)
+                .expectNext(nome.toUpperCase())
+                .verifyComplete();
+    }
+
+    @Test
+    public void monoSubscriberConsumerSubscription(){
+        String nome = "William Coelho";
+        Mono<String> mono = Mono.just(nome)
+                .log()
+                .map(String::toUpperCase);
+
+        mono.subscribe(s -> log.info("Value {} ", s),
+                Throwable::printStackTrace,
+                () -> log.info("Finalizado"),
+                Subscription::cancel);
+        log.info("---------------");
+        StepVerifier.create(mono)
+                .expectNext(nome.toUpperCase())
+                .verifyComplete();
+    }
 }
+
 
