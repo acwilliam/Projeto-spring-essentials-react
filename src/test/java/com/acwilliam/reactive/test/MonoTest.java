@@ -55,7 +55,9 @@ public class MonoTest {
     public void monoSubscriberConsumerError(){
         String nome = "William Coelho";
         Mono<String> mono = Mono.just(nome)
-                .map(s-> {throw new RuntimeException("Teste mono com error");});
+                .map(s-> {
+                    throw new RuntimeException("Teste mono com error");
+                });
 
         mono.subscribe(s -> log.info("Nome{} ", s), s-> log.error("Alguma coisas ruim aconteceu"));
         mono.subscribe(s -> log.info("Nome{} ", s), Throwable::printStackTrace);
@@ -108,13 +110,58 @@ public class MonoTest {
                 .doOnRequest(longNumber -> log.info("Request recebido, começou a fazer alguma coisa.."))
                 .doOnNext(s-> log.info("Para cada valor aqui, ele vai executar o doOnNext {} ", s))
                 .flatMap(s -> Mono.empty())//nao deverá ser executada
+                .doOnNext(s-> log.info("Para cada valor aqui, ele vai executar o doOnNext {} ", s))
                 .doOnSuccess(s->log.info("doOnSucsess executed {} ", s));
 
         mono.subscribe(s -> log.info("Value {} ", s),
                 Throwable::printStackTrace,
                 () -> log.info("Finalizado"));
         log.info("---------------");
+    }
 
+    @Test
+    public void monoDoOnError(){
+        Mono<Object> error = Mono.error(new IllegalArgumentException("Illegal Arguments Expection Error"))
+                .doOnError(e -> MonoTest.log.error("Mensagem de error: {} ", e.getMessage()))
+                .doOnNext(s -> log.info("Executando este doOnNext"))
+                .log();
+
+        StepVerifier.create(error)
+                .expectError(IllegalArgumentException.class)
+                .verify();
+    }
+
+    @Test
+    public void monoDoOnErrorResume(){
+        String nome= "William Carvalho";
+        Mono<Object> error = Mono.error(new IllegalArgumentException("Illegal Arguments Expection Error"))
+                .doOnError(e -> MonoTest.log.error("Mensagem de error: {} ", e.getMessage()))
+                .onErrorResume(s -> {
+                    log.info("Continuando apos o error");
+                    return Mono.just(nome);
+                })
+                .log();
+
+        StepVerifier.create(error)
+                .expectNext(nome)
+                .verifyComplete();
+    }
+
+    @Test
+    public void monoDoOnErrorReturn(){
+        String nome= "William Carvalho";
+        Mono<Object> error = Mono.error(new IllegalArgumentException("Illegal Arguments Expection Error"))
+                .onErrorReturn("LIMPO")
+                .onErrorResume(s -> {
+                    log.info("Continuando apos o error");
+                    return Mono.just(nome);
+                })
+                .doOnError(e -> MonoTest.log.error("Mensagem de error: {} ", e.getMessage()))
+                .log();
+
+        StepVerifier.create(error)
+                .expectNext("LIMPO")
+                .verifyComplete();
     }
 
 
