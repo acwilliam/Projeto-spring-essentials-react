@@ -91,12 +91,33 @@ public class MonoTest {
         mono.subscribe(s -> log.info("Value {} ", s),
                 Throwable::printStackTrace,
                 () -> log.info("Finalizado"),
-                Subscription::cancel);
+                subscription -> subscription.request(5));
         log.info("---------------");
         StepVerifier.create(mono)
                 .expectNext(nome.toUpperCase())
                 .verifyComplete();
     }
+
+    @Test
+    public void monoDoOnMethod(){
+        String nome = "William Coelho";
+        Mono<Object> mono = Mono.just(nome)
+                .log()
+                .map(String::toUpperCase)
+                .doOnSubscribe(subscription -> log.info("Subscrito"))
+                .doOnRequest(longNumber -> log.info("Request recebido, começou a fazer alguma coisa.."))
+                .doOnNext(s-> log.info("Para cada valor aqui, ele vai executar o doOnNext {} ", s))
+                .flatMap(s -> Mono.empty())//nao deverá ser executada
+                .doOnSuccess(s->log.info("doOnSucsess executed {} ", s));
+
+        mono.subscribe(s -> log.info("Value {} ", s),
+                Throwable::printStackTrace,
+                () -> log.info("Finalizado"));
+        log.info("---------------");
+
+    }
+
+
 }
 
 
