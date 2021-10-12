@@ -147,6 +147,20 @@ public class FluxTest {
     }
 
     @Test
+    public void fluxSubscriberPrettyBackPressure(){
+        Flux<Integer> flux= Flux.range(1,10)
+                .log()
+                .limitRate(3);
+
+        flux.subscribe(i -> log.info("Number {} ", i));
+
+        log.info("-------------------------------------");
+        StepVerifier.create(flux)
+                .expectNext(1,2,3,4,5,6,7,8,9,10)
+                .verifyComplete() ;
+    }
+
+    @Test
     public void fluxSubscriberIntervaloOne() throws Exception {
         Flux<Long> intervalo = Flux.interval(Duration.ofMillis(100))
              .take(10)
