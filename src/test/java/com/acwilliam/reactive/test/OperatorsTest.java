@@ -14,12 +14,12 @@ public class OperatorsTest {
       Flux<Integer> flux =  Flux.range(1,4)
                 .map(i-> {
                     log.info("MAP 1 - Number {} na Thread {}", i, Thread.currentThread().getName());
-                    return 1;
+                    return i;
                 })
                 .subscribeOn(Schedulers.boundedElastic())
                 .map(i -> {
                     log.info("MAP 2 - Number {} na Thread {} ",i, Thread.currentThread().getName());
-                    return 1;
+                    return i;
                 });
         StepVerifier.create(flux)
                 .expectSubscription()
@@ -32,12 +32,93 @@ public class OperatorsTest {
         Flux<Integer> flux =  Flux.range(1,4)
                 .map(i-> {
                     log.info("MAP 1 - Number {} na Thread {}", i, Thread.currentThread().getName());
-                    return 1;
+                    return i;
                 })
                 .publishOn(Schedulers.boundedElastic())
                 .map(i -> {
                     log.info("MAP 2 - Number {} na Thread {} ",i, Thread.currentThread().getName());
-                    return 1;
+                    return i;
+                });
+        flux.subscribe();
+        flux.subscribe();
+        StepVerifier.create(flux)
+                .expectSubscription()
+                .expectNext(1,2,3,4)
+                .verifyComplete();
+    }
+
+    @Test
+    public void multipleSubscriberOnSimple(){
+        Flux<Integer> flux =  Flux.range(1,4)
+                .subscribeOn(Schedulers.single())
+                .map(i-> {
+                    log.info("MAP 1 - Number {} na Thread {}", i, Thread.currentThread().getName());
+                    return i;
+                })
+                .subscribeOn(Schedulers.boundedElastic())
+                .map(i -> {
+                    log.info("MAP 2 - Number {} na Thread {} ",i, Thread.currentThread().getName());
+                    return i;
+                });
+        StepVerifier.create(flux)
+                .expectSubscription()
+                .expectNext(1,2,3,4)
+                .verifyComplete();
+    }
+
+    @Test
+    public void multiplePublishOn(){
+        Flux<Integer> flux =  Flux.range(1,4)
+                .publishOn(Schedulers.single())
+                .map(i-> {
+                    log.info("MAP 1 - Number {} na Thread {}", i, Thread.currentThread().getName());
+                    return i;
+                })
+                .publishOn(Schedulers.boundedElastic())
+                .map(i -> {
+                    log.info("MAP 2 - Number {} na Thread {} ",i, Thread.currentThread().getName());
+                    return i;
+                });
+
+        StepVerifier.create(flux)
+                .expectSubscription()
+                .expectNext(1,2,3,4)
+                .verifyComplete();
+    }
+
+    @Test
+    public void publisheAndSubscriberOnSimple(){
+        Flux<Integer> flux =  Flux.range(1,4)
+                .publishOn(Schedulers.single())//publish on é a precedencia sobre o subs
+                .map(i-> {
+                    log.info("MAP 1 - Number {} na Thread {}", i, Thread.currentThread().getName());
+                    return i;
+                })
+                .subscribeOn(Schedulers.boundedElastic())//totalmente ignorado
+                .map(i -> {
+                    log.info("MAP 2 - Number {} na Thread {} ",i, Thread.currentThread().getName());
+                    return i;
+                });
+        flux.subscribe();
+        flux.subscribe();
+        StepVerifier.create(flux)
+                .expectSubscription()
+                .expectNext(1,2,3,4)
+                .verifyComplete();
+    }
+
+    @Test
+    public void subscriberAndPublisheOnSimple(){
+        Flux<Integer> flux =  Flux.range(1,4)
+                .subscribeOn(Schedulers.single())//afeta tudo abaixo
+                .map(i-> {
+                    log.info("MAP 1 - Number {} na Thread {}", i, Thread.currentThread().getName());
+                    return i;
+                })
+                .publishOn(Schedulers.boundedElastic())//publish afeta depois do momento da declaracao
+                .map(i -> {
+                    log.info("MAP 2 - Number {} na Thread {} ",i, Thread.currentThread().getName());
+                    return i;
                 });
         flux.subscribe();
         flux.subscribe();
