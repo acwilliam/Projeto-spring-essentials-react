@@ -349,7 +349,7 @@ public class OperatorsTest {
         StepVerifier.create(mergeFlux)
                 .expectSubscription()
                 .expectNext("a","b","c","d","a","b")
-                .expectError()
+                .expectComplete()
                 .verify();
 
     }
@@ -367,7 +367,7 @@ public class OperatorsTest {
 
         StepVerifier.create(flatFlux)
                 .expectSubscription()
-                .expectNext("nomeA1","nomeA2","nomeB1","nomeB2")
+                .expectNext("nomeB1","nomeB2","nomeA1","nomeA2")
                 .verifyComplete();
     }
 

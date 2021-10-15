@@ -15,9 +15,18 @@
         <lombok.version>1.18.20</lombok.version>
         <junit.version>5.7.2</junit.version>
         <slf4j.version>1.7.31</slf4j.version>
+        <blockhound.version>1.0.6.RELEASE</blockhound.version>
     </properties>
 
     <dependencies>
+
+        <dependency>
+            <groupId>io.projectreactor.tools</groupId>
+            <artifactId>blockhound</artifactId>
+            <version>${blockhound.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
 
         <dependency>
             <groupId>io.projectreactor</groupId>
