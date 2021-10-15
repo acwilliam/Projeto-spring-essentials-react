@@ -1,5 +1,9 @@
 package com.acwilliam.reactive.test;
 
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -7,13 +11,15 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
+import reactor.util.function.Tuple3;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.atomic.AtomicLong;
+
+import static java.lang.Integer.parseInt;
 
 @Slf4j
 public class OperatorsTest {
@@ -382,9 +388,57 @@ public class OperatorsTest {
                 .verifyComplete();
     }
 
-
     public Flux<String> findByName(String name){
         return name.equals("A") ? Flux.just("nomeA1","nomeA2").delayElements(Duration.ofMillis(100)):Flux.just("nomeB1","nomeB2");
     }
+
+    @Test
+    public void zipOperator(){
+        Flux<String> tituloFlux = Flux.just("naruto", "boruto");
+        Flux<String> estudioFlux = Flux.just("Studio Pierrot", "Studio Pierrot boruto");
+        Flux<Integer> episodiosFlux = Flux.just(12,24);
+
+        Flux<Anime> animeFlux = Flux.zip(tituloFlux, episodiosFlux, estudioFlux)
+                .flatMap(tuple -> Flux.just(new Anime(tuple.getT1(),tuple.getT3(), tuple.getT2())));
+
+        animeFlux.subscribe(anime->log.info(anime.toString()));
+
+        StepVerifier.create(animeFlux)
+                .expectSubscription()
+                .expectNext(new Anime("naruto","Studio Pierrot",12),
+                            new Anime("boruto","Studio Pierrot boruto",24))
+                .verifyComplete();
+
+    }
+
+    @Test
+    public void zipWithOperator(){
+        Flux<String> tituloFlux = Flux.just("naruto", "boruto");
+        Flux<String> estudioFlux = Flux.just("Studio Pierrot", "Studio Pierrot boruto");
+        Flux<Integer> episodiosFlux = Flux.just(12,24);
+
+        Flux<Anime> animeFlux = Flux.zip(tituloFlux, episodiosFlux, estudioFlux)
+                .flatMap(tuple -> Flux.just(new Anime(tuple.getT1(),tuple.getT3(), tuple.getT2())));
+
+        animeFlux.subscribe(anime->log.info(anime.toString()));
+
+        StepVerifier.create(animeFlux)
+                .expectSubscription()
+                .expectNext(new Anime("naruto","Studio Pierrot",12),
+                        new Anime("boruto","Studio Pierrot boruto",24))
+                .verifyComplete();
+
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @ToString
+    @EqualsAndHashCode
+    class Anime{
+        private String titulo;
+        private String estudio;
+        private int episodios;
+    }
+
 
 }
