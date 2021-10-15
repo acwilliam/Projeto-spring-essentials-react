@@ -348,4 +348,43 @@ public class OperatorsTest {
 
     }
 
+    @Test
+    public void flatMapOperator() throws Exception {
+        Flux<String> flux = Flux.just("a", "b");
+
+        Flux<String> flatFlux = flux.map(String::toUpperCase)
+                .flatMap(this::findByName)
+                .log();
+
+     //   flatFlux.subscribe(log::info);
+     //  Thread.sleep(500);
+
+        StepVerifier.create(flatFlux)
+                .expectSubscription()
+                .expectNext("nomeA1","nomeA2","nomeB1","nomeB2")
+                .verifyComplete();
+    }
+
+    @Test
+    public void flatMapSequentialOperator() throws Exception {
+        Flux<String> flux = Flux.just("a", "b");
+
+        Flux<String> flatFlux = flux.map(String::toUpperCase)
+                .flatMapSequential(this::findByName)
+                .log();
+
+        //   flatFlux.subscribe(log::info);
+        //  Thread.sleep(500);
+
+        StepVerifier.create(flatFlux)
+                .expectSubscription()
+                .expectNext("nomeA1","nomeA2","nomeB1","nomeB2")
+                .verifyComplete();
+    }
+
+
+    public Flux<String> findByName(String name){
+        return name.equals("A") ? Flux.just("nomeA1","nomeA2").delayElements(Duration.ofMillis(100)):Flux.just("nomeB1","nomeB2");
+    }
+
 }
